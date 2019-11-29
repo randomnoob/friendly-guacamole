@@ -32,7 +32,8 @@ async def consumer(queue):
         # work is a list of Keyword instances
         storage, keywords = await queue.get()
         # Grab the pages
-        await grab_batch(keyword_obj_list=keywords,
+        # print ("Keywords type : {}".format(type(keywords)))
+        await grab_batch(keywordbatch_obj=keywords,
                                 storage=storage,
                                 success_callback=consumer_success_callback,
                                 failed_callback=consumer_failed_callback)
@@ -45,16 +46,17 @@ async def producer(queue):
     while True:
         storage = Storage()
         try:
-            tenkey = storage.get_10(string=True)
+            tenkey_batch = storage.get_10(string=True)
             # print (f"TENKEY : {tenkey}")
         except:
             break
         if queue.full():
             await asyncio.sleep(5)
             print ("Sleeping 5 seconds to prevent choking")
-        template = "https://en.wikipedia.org/w/api.php?action=query&list=search&prop=info&format=json&srsearch={}"
+        # template = "https://en.wikipedia.org/w/api.php?action=query&list=search&prop=info&format=json&srsearch={}"
+        template = "http://checkip.amazonaws.com/"
         proxy = storage.get_proxy()
-        keywords = KeywordBatch(tenkey, template, proxy).get_keywords()
+        keywords = KeywordBatch(tenkey_batch, template, proxy)
         work = (storage, keywords)
         await queue.put(work)
         # print(f'produced 10 URLs')
@@ -62,8 +64,8 @@ async def producer(queue):
 def main():
     queue = asyncio.Queue(maxsize=20)
     loop = asyncio.get_event_loop()
-    num_producer = 2
-    num_consumer = 5
+    num_producer = 10
+    num_consumer = 50
     try:
         for i in range(1,num_producer):
             loop.create_task(producer(queue))

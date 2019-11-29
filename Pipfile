@@ -7,10 +7,13 @@ verify_ssl = true
 
 [packages]
 pylint = "*"
-requests = "*"
+requests = {extras = ["socks"],version = "*"}
 aiohttp = "*"
 mongoengine = "*"
 ipython = "*"
+bs4 = "*"
+lxml = "*"
+aiohttp-proxy = "*"
 
 [requires]
 python_version = "3.7"

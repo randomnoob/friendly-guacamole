@@ -3,15 +3,16 @@ from datetime import datetime
 import random
 
 class Proxy(Document):
-    port = StringField(required=True)
+    proxy_url = StringField(required=True)
     last_used = DateTimeField(required=True, default=datetime.utcnow)
     is_using = BooleanField(required=True, default=False)
     dead = BooleanField(required=True, default=False)
 
     def __repr__(self):
-        return f"{self.port} used at {self.last_used}"
+        return f"{self.proxy_url} used at {self.last_used}"
     def __str__(self):
-        return self.port
+        return self.proxy_url
+
 
 class Key(Document):
     kw = StringField(required=True)
@@ -61,7 +62,11 @@ class Storage:
         else:
             return False
 
+# PROXIES
     def get_proxy(self):
+        """
+        Get alive, non-abused proxy from DB, also marks it "is_using"
+        """
         current_proxy = random.choice(Proxy.objects(is_using=False, dead=False))
         if self.proxy_usable_check(current_proxy):
             current_proxy.update(is_using=True)
@@ -82,6 +87,8 @@ class Storage:
     def mark_proxy_dead(self, proxy_instance):
         return proxy_instance.update(dead=True)
 
+# END PROXIES
+
 class Keyword:
     def __init__(self, keyword, url_template, proxy):
         self.keyword = keyword
@@ -97,6 +104,7 @@ class Keyword:
 class KeywordBatch:
     def __init__(self, kwlist, url_template, proxy):
         self.keyword_list = self.gen_kwlist(kwlist, url_template, proxy)
+        self.proxy = proxy
     
     @staticmethod
     def gen_kwlist(kwlist, url_template, proxy):
